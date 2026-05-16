@@ -1,12 +1,11 @@
 FROM alpine:latest
-MAINTAINER David Personette <dperson@gmail.com>
+LABEL maintainer="me@antoniomika.me"
 
 # Install samba
-RUN apk update && \
-    apk upgrade && \
-    apk add bash samba shadow tini tzdata && \
+RUN apk --no-cache upgrade && \
+    apk --no-cache add bash samba shadow tini tzdata && \
     addgroup -S smb && \
-    adduser -S -D -H -h /tmp -s /sbin/nologin -G smb -g 'Samba User' smbuser &&\
+    adduser -S -D -H -h /tmp -s /sbin/nologin -G smb -g 'Samba User' smbuser && \
     file="/etc/samba/smb.conf" && \
     sed -i 's|^;* *\(log file = \).*|   \1/dev/stdout|' $file && \
     sed -i 's|^;* *\(load printers = \).*|   \1no|' $file && \
@@ -34,7 +33,7 @@ RUN apk update && \
     echo '   strict locking = no' >>$file && \
     echo '   aio read size = 0' >>$file && \
     echo '   aio write size = 0' >>$file && \
-    echo '   vfs objects = catia fruit recycle streams_xattr' >>$file && \
+    echo '   vfs objects = catia fruit streams_xattr recycle' >>$file && \
     echo '   recycle:keeptree = yes' >>$file && \
     echo '   recycle:maxsize = 0' >>$file && \
     echo '   recycle:repository = .deleted' >>$file && \
@@ -48,22 +47,24 @@ RUN apk update && \
     echo '   server max protocol = SMB3' >>$file && \
     echo '   server min protocol = SMB2_10' >>$file && \
     echo '' >>$file && \
-    echo '   # Time Machine' >>$file && \
-    echo '   fruit:delete_empty_adfiles = yes' >>$file && \
-    echo '   fruit:time machine = yes' >>$file && \
+    echo '   # macOS / Time Machine' >>$file && \
+    echo '   fruit:metadata = stream' >>$file && \
+    echo '   fruit:model = MacSamba' >>$file && \
+    echo '   fruit:posix_rename = yes' >>$file && \
     echo '   fruit:veto_appledouble = no' >>$file && \
     echo '   fruit:wipe_intentionally_left_blank_rfork = yes' >>$file && \
+    echo '   fruit:delete_empty_adfiles = yes' >>$file && \
+    echo '   fruit:nfs_aces = no' >>$file && \
+    echo '   fruit:time machine = yes' >>$file && \
     echo '' >>$file && \
     rm -rf /tmp/*
 
-ADD samba.sh /usr/bin/samba.sh
+COPY samba.sh /usr/bin/samba.sh
 
 EXPOSE 137/udp 138/udp 139 445
 
-HEALTHCHECK --interval=60s --timeout=15s \
-            CMD smbclient -L \\localhost -U % -m SMB3
+HEALTHCHECK --interval=60s --timeout=15s CMD smbclient -L \\localhost -U % -m SMB3
 
-VOLUME ["/etc", "/var/cache/samba", "/var/lib/samba", "/var/log/samba",\
-            "/run/samba"]
+VOLUME ["/etc", "/var/cache/samba", "/var/lib/samba", "/var/log/samba", "/run/samba"]
 
 ENTRYPOINT ["/sbin/tini", "--", "/usr/bin/samba.sh"]
