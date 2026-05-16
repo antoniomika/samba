@@ -8,7 +8,7 @@ RUN apk --no-cache upgrade && \
     adduser -S -D -H -h /tmp -s /sbin/nologin -G smb -g 'Samba User' smbuser && \
     file="/etc/samba/smb.conf" && \
     sed -i 's|^;* *\(log file = \).*|   \1/dev/stdout|' $file && \
-    sed -i 's|^;* *\(max log size = \).*|   \10|' $file && \
+    sed -i -E 's|^[#;[:space:]]*max log size.*|   max log size = 0|' $file && \
     sed -i 's|^;* *\(load printers = \).*|   \1no|' $file && \
     sed -i 's|^;* *\(printcap name = \).*|   \1/dev/null|' $file && \
     sed -i 's|^;* *\(printing = \).*|   \1bsd|' $file && \
