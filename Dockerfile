@@ -55,7 +55,7 @@ RUN apk --no-cache upgrade && \
     echo '   fruit:wipe_intentionally_left_blank_rfork = yes' >>$file && \
     echo '   fruit:delete_empty_adfiles = yes' >>$file && \
     echo '   fruit:nfs_aces = no' >>$file && \
-    echo '   fruit:time machine = yes' >>$file && \
+    echo '   fruit:aapl = yes' >>$file && \
     echo '' >>$file && \
     rm -rf /tmp/*
 
